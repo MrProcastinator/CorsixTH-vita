@@ -18,6 +18,20 @@
 #   - ENABLE_UNIT_TESTS : Enable Unit Testing Target (requires Catch2) (no)
 #   - BUILD_ANIMVIEW : Generate AnimViewer build files (no)
 #   - BUILD_TOOLS : Generate cli tools
+#   - VITA: Build for PSVITA (no)
+
+#   For PSVita builds:
+#		- VITA_DISABLE_DEBUGNET: disable debugnet calls for debugging information and use default log.txt (no)
+#		- VITA_SDL_LIB: name of SDL2 static library (SDL2)
+#		- VITA_SDL_MIXER_LIB: name of SDL_mixer static library (SDL_mixer)
+#		- VITA_GL_LIB: name of OpenGL static library (vitaGL)
+#		- VITA_LUA_LIB: name of lua static library (luajit-5.1)
+#		- VITA_JPEG_LIB: name of jpeg static library (jpeg)
+#		- VITA_PNG_LIB: name of curl png library (png16)
+#		- VITA_FREETYPE_LIB: name of Freetype2 font library (freetype)
+#		- VITA_MATHNEON_LIB: name of mathneon static library (mathneon)
+#		- VITA_VITASHARK_LIB: name of vitashark static library (vitashark)
+#		- VITA_PTHREAD_LIB: name of pthread static library (pthread)
 
 cmake_minimum_required(VERSION 3.10)
 
@@ -29,6 +43,18 @@ if(USE_VCPKG_DEPS)
   # This must be before the project for the tool-chain to work correctly
   message("Note: Using locally built vcpkg dependencies.")
   include(VcpkgDeps)
+endif()
+
+# Required vitasdk toolchain
+if(VITA)
+	if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+		if(DEFINED ENV{VITASDK})
+			set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
+      link_directories("$ENV{VITASDK}/arm-vita-eabi/lib/")
+		else()
+			message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
+		endif()
+	endif()
 endif()
 
 project(CorsixTH_Top_Level)
@@ -150,4 +176,6 @@ endif()
 message("")
 
 # Documentation generation, construct 'doc' target
+if (NOT VITA)
 include(GenerateDoc)
+endif()

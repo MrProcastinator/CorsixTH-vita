@@ -62,6 +62,13 @@ target_sources(CorsixTH_lib
     ${CMAKE_BINARY_DIR}/CorsixTH/Src/config.h
 )
 
+if(VITA)
+    target_sources(CorsixTH_lib
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/psp2_output.c 
+    )
+endif()
+
 target_sources(CorsixTH
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp

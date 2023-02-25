@@ -26,6 +26,9 @@ elseif(MSVC)
 elseif(APPLE)
   set(CORSIX_TH_DATADIR CorsixTH.app/Contents/Resources/)
   set(CORSIX_TH_INTERPRETER_PATH ${CMAKE_INSTALL_PREFIX}/${CORSIX_TH_DATADIR}/${CORSIX_TH_INTERPRETER_NAME})
+elseif(VITA)
+  set(CORSIX_TH_DATADIR ux0:data/corsixth)
+  set(CORSIX_TH_INTERPRETER_PATH ${CORSIX_TH_DATADIR}/${CORSIX_TH_INTERPRETER_NAME})
 else()
   set(CORSIX_TH_DATADIR ${CMAKE_INSTALL_DATADIR}/corsix-th)
   set(CORSIX_TH_INTERPRETER_PATH ${CMAKE_INSTALL_FULL_DATADIR}/corsix-th/${CORSIX_TH_INTERPRETER_NAME})
@@ -111,7 +114,7 @@ if(MSVC AND USE_VCPKG_DEPS)
   find_package(SDL2 CONFIG REQUIRED)
   target_link_libraries(CorsixTH_lib SDL2::SDL2)
   target_link_libraries(CorsixTH SDL2::SDL2main)
-else()
+elseif(NOT VITA)
   find_package(SDL2 REQUIRED)
   if(SDL_FOUND)
     include_directories(${SDL_INCLUDE_DIR})
@@ -125,6 +128,8 @@ else()
   else()
     message(FATAL_ERROR "Error: SDL2 library not found, it is required to build. Make sure the path is correctly defined or set the environment variable SDLDIR to the correct location")
   endif()
+else()
+  message("Building for PSVita, ignoring SDL2 lookup...")
 endif()
 
 # Find Lua
@@ -132,7 +137,7 @@ if(MSVC AND USE_VCPKG_DEPS)
   find_package(Lua CONFIG REQUIRED)
   target_link_libraries(CorsixTH_lib lua)
   target_link_libraries(CorsixTH lua)
-else()
+elseif(NOT VITA)
   find_package(Lua REQUIRED)
   if(Lua_FOUND OR LUA_FOUND)
     target_link_libraries(CorsixTH ${LUA_LIBRARY})
@@ -155,18 +160,24 @@ else()
   else()
     message(FATAL_ERROR "Error: Lua library not found, it is required to build")
   endif()
+else()
+  message("Building for PSVita, ignoring Lua lookup...")
 endif()
 
 # Add threading library
-find_package(Threads)
-target_link_libraries(CorsixTH ${CMAKE_THREAD_LIBS_INIT})
+if(NOT VITA)
+  find_package(Threads)
+  target_link_libraries(CorsixTH ${CMAKE_THREAD_LIBS_INIT})
+else()
+  message("Building for PSVita, ignoring pthread lookup...")
+endif()
 
 # Find SDL_mixer
 if(CORSIX_TH_USE_SDL_MIXER)
   if(MSVC AND USE_VCPKG_DEPS)
     find_package(SDL2_mixer CONFIG REQUIRED)
     target_link_libraries(CorsixTH SDL2_mixer::SDL2_mixer)
-  else()
+  elseif(NOT VITA)
     find_package(SDL2_mixer REQUIRED)
     if(SDLMIXER_FOUND)
       target_link_libraries(CorsixTH ${SDLMIXER_LIBRARY})
@@ -175,23 +186,29 @@ if(CORSIX_TH_USE_SDL_MIXER)
     else()
       message(FATAL_ERROR "Error: SDL_mixer library not found, even though it was selected to be included")
     endif()
+  else()
+    message("Building for PSVita, ignoring SDL_mixer lookup...")
   endif()
 endif()
 
 # Find FFMPEG
 if(CORSIX_TH_USE_FFMPEG)
   find_package(FFmpeg COMPONENTS AVFORMAT AVCODEC AVUTIL SWSCALE SWRESAMPLE REQUIRED)
-  if(FFMPEG_FOUND)
-    target_link_libraries(CorsixTH ${FFMPEG_LIBRARIES})
-    include_directories(${FFMPEG_INCLUDE_DIRS})
-    if(APPLE)
-      target_link_libraries(CorsixTH libz.dylib)
-      # These LDFLAGS are necessary for static ffmpeg, harmless for dynamic ffmpeg
-      set(CMAKE_EXE_LINKER_FLAGS "-liconv -framework CoreVideo")
+  if(NOT VITA)
+    if(FFMPEG_FOUND)
+      target_link_libraries(CorsixTH ${FFMPEG_LIBRARIES})
+      include_directories(${FFMPEG_INCLUDE_DIRS})
+      if(APPLE)
+        target_link_libraries(CorsixTH libz.dylib)
+        # These LDFLAGS are necessary for static ffmpeg, harmless for dynamic ffmpeg
+        set(CMAKE_EXE_LINKER_FLAGS "-liconv -framework CoreVideo")
+      endif()
+      message("  FFmpeg found")
+    else()
+      message(FATAL_ERROR "Error: FFmpeg library not found, even though it was selected to be included")
     endif()
-    message("  FFmpeg found")
   else()
-    message(FATAL_ERROR "Error: FFmpeg library not found, even though it was selected to be included")
+    message("Building for PSVita, ignoring FFmpeg lookup...")
   endif()
 endif()
 
@@ -200,7 +217,7 @@ if(CORSIX_TH_USE_FREETYPE2)
   if(MSVC AND USE_VCPKG_DEPS)
     find_package(Freetype REQUIRED)
     target_link_libraries(CorsixTH Freetype::Freetype)
-  else()
+  elseif(NOT VITA)
     find_package(Freetype REQUIRED)
     if(FREETYPE_FOUND)
       target_link_libraries(CorsixTH ${FREETYPE_LIBRARIES})
@@ -213,6 +230,8 @@ if(CORSIX_TH_USE_FREETYPE2)
     else()
       message(FATAL_ERROR "Error: FreeType2 library not found, even though it was selected to be used")
     endif()
+  else()
+    message("Building for PSVita, ignoring Freetype2 lookup...")
   endif()
 endif()
 
@@ -225,6 +244,93 @@ if(MSVC AND CORSIX_TH_USE_VLD)
   else()
     message(FATAL_ERROR "Error: VLD Library not found, it is required to build when USE_VLD is set")
   endif()
+endif()
+
+# Manually setting all libraries for vitasdk
+if(VITA)
+  include("${VITASDK}/share/vita.cmake" REQUIRED)
+
+  # Add all vitasdk shared libraries
+  # Name variables
+  set(VITA_SDL_LIB SDL2 CACHE STRING "Name of SDL2 static library")
+  set(VITA_SDL_MIXER_LIB SDL2_mixer CACHE STRING "Name of SDL2 Mixer static library")
+  set(VITA_GL_LIB vitaGL CACHE STRING "Name of OpenGL static library")
+  set(VITA_PNG_LIB png16 CACHE STRING "Name of png library")
+  set(VITA_FREETYPE2_LIB freetype CACHE STRING "Name of Freetype2 static library")
+  set(VITA_LUA_LIB luajit-5.1 CACHE STRING "Name of lua static library")
+  set(VITA_MATHNEON_LIB mathneon CACHE STRING "Name of mathneon static library")
+  set(VITA_VITASHARK_LIB vitashark CACHE STRING "Name of vitashark static library")
+  set(VITA_PTHREAD_LIB pthread CACHE STRING "Name of pthread static library")
+
+  target_include_directories(CorsixTH PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include")
+  target_include_directories(CorsixTH PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include/freetype2")
+  target_include_directories(CorsixTH PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include/luajit-2.1")
+  target_include_directories(CorsixTH PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include/SDL2")
+
+  target_include_directories(CorsixTH_lib PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include")
+  target_include_directories(CorsixTH_lib PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include/freetype2")
+  target_include_directories(CorsixTH_lib PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include/luajit-2.1")
+  target_include_directories(CorsixTH_lib PUBLIC "$ENV{VITASDK}/arm-vita-eabi/include/SDL2")
+
+  # FFmpeg related
+  target_link_libraries(CorsixTH avformat avcodec swresample swscale avutil mp3lame)
+
+  # Native libraries dependencies
+  target_link_libraries(CorsixTH ${VITA_FREETYPE2_LIB} ${VITA_PNG_LIB} ${VITA_LUA_LIB} ${VITA_SDL_MIXER_LIB} ${VITA_SDL_LIB} ${VITA_GL_LIB} ${VITA_MATHNEON_LIB} ${VITA_VITASHARK_LIB})
+
+  # SDL_Mixer dependencies
+  target_link_libraries(CorsixTH FLAC mpg123 mikmod modplug vorbisfile vorbisenc vorbis ogg)
+
+  # Other libraries
+  target_link_libraries(CorsixTH c z m dl)
+
+  # Lua libraries stubs
+  target_link_libraries(CorsixTH lua_lpeg lua_lfs)
+
+  # pthread library (using local version for now)
+  target_link_libraries(CorsixTH -Wl,--whole-archive ${VITA_PTHREAD_LIB} -Wl,--no-whole-archive)
+
+  # Showing which options were chosen
+  message(STATUS "Using these static libraries:")
+	message(STATUS "With SDL2: ${VITA_SDL_LIB}")
+  message(STATUS "With SDL2_mixer: ${VITA_SDL_MIXER_LIB}")
+  message(STATUS "With OpenGL: ${VITA_GL_LIB}")
+	message(STATUS "With lua: ${VITA_LUA_LIB}")
+	message(STATUS "With png: ${VITA_PNG_LIB}")
+	message(STATUS "With freetype: ${VITA_FREETYPE2_LIB}")
+  message(STATUS "With mathneon: ${VITA_MATHNEON_LIB}")
+  message(STATUS "With vitashark: ${VITA_VITASHARK_LIB}")
+	message(STATUS "With pthread: ${VITA_PTHREAD_LIB}")
+  
+  # debugging library
+  # if(VITA_DISABLE_DEBUGNET)
+  #   target_compile_definitions(CorsixTH SCP_VITA_DEBUG_NODEBUGNET)
+  # else()
+  #   target_link_libraries(CorsixTH debugnet)
+  # endif()
+
+  # vitasdk stubs
+  target_link_libraries(CorsixTH SceShaccCgExt taihen_stub SceShaccCg_stub SceDisplay_stub SceGxm_stub SceCtrl_stub SceTouch_stub SceCommonDialog_stub SceAudio_stub SceLibKernel_stub SceNet_stub SceNetCtl_stub SceSysmodule_stub SceMotion_stub SceAppMgr_stub SceAppUtil_stub ScePgf_stub SceRtc_stub ScePower_stub SceAudioIn_stub SceHid_stub SceSblSsMgr_stub SceKernelDmacMgr_stub SceSysmem_stub SceIme_stub)
+
+  # VPK Configuration
+  set(VITA_APP_NAME "CorsixTH")
+  set(VITA_TITLEID  "CORSIXTH1")
+  set(VITA_VPKNAME  "CorsixTH")
+  set(VITA_VERSION  "01.00")
+  set(VITA_MKSFOEX_FLAGS "-d ATTRIBUTE2=12")
+
+  # Vita .vpk generation config
+  vita_create_self(eboot.bin CorsixTH UNSAFE STRIPPED)
+  vita_create_vpk(${VITA_VPKNAME}.vpk ${VITA_TITLEID} eboot.bin
+    VERSION ${VITA_VERSION}
+    NAME ${VITA_APP_NAME}
+    FILE 
+      ${CMAKE_SOURCE_DIR}/vita/sce_sys/icon0.png sce_sys/icon0.png
+      ${CMAKE_SOURCE_DIR}/vita/sce_sys/startup.png sce_sys/livearea/contents/startup.png
+      ${CMAKE_SOURCE_DIR}/vita/sce_sys/bg.png sce_sys/livearea/contents/bg.png
+      ${CMAKE_SOURCE_DIR}/vita/sce_sys/template.xml sce_sys/livearea/contents/template.xml    
+)
+
 endif()
 
 # Launch script to facilitate out of source builds
