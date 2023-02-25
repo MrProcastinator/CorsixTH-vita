@@ -35,6 +35,11 @@ SOFTWARE.
 #include "persist_lua.h"
 #include "th_lua.h"
 
+#if __vita__
+#include "psp2_output.h"
+#include "psp2_lua_libs.h"
+#endif
+
 #ifdef CORSIX_TH_SEARCH_LOCAL_DATADIRS
 #include "../../libs/whereami/whereami.h"
 #endif
@@ -162,6 +167,11 @@ int lua_main_no_eval(lua_State* L) {
   preload_lua_package(L, "TH", luaopen_th);
   preload_lua_package(L, "persist", luaopen_persist);
   preload_lua_package(L, "sdl", luaopen_sdl);
+#if __vita__
+  // Must preload other dependencies in case of PSVita
+  preload_lua_package(L, "lfs", luaopen_lfs);
+  preload_lua_package(L, "lpeg", luaopen_lpeg);
+#endif
 
   // require "debug" (Harmless in Lua 5.1, useful in 5.2 for compatibility)
   luaT_execute(L, "require \"debug\"");
