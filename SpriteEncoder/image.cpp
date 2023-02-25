@@ -25,6 +25,10 @@ SOFTWARE.
 #include <png.h>
 #include "image.h"
 
+#if __vita__
+#include ",,/Src/psp2_output.h"
+#endif
+
 uint32 MakeRGBA(uint8 r, uint8 g, uint8 b, uint8 a)
 {
     assert(sizeof(uint32) == 4); // Not really the good place, but it has to be checked somewhere!

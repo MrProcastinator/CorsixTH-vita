@@ -33,6 +33,11 @@ SOFTWARE.
 #ifdef CORSIX_TH_USE_SDL_MIXER
 #include <SDL_mixer.h>
 #endif
+
+#if __vita__
+#include "../Src/psp2_output.h"
+#endif
+
 // Template magic for checking type equality
 template <typename T1, typename T2>
 struct types_equal {
@@ -74,6 +79,10 @@ int main(int argc, char** argv) {
     // 32 bits (floats only have 24 bits)
     int number_is_double[types_equal<lua_Number, double>::result];
   };
+
+#if __vita__
+  load_output_files(&vita_stdout, &vita_stderr);
+#endif
 
   bool bRun = true;
 

@@ -25,6 +25,10 @@ SOFTWARE.
 #include "ast.h"
 #include "output.h"
 
+#if __vita__
+#include "psp2_output.h"
+#endif
+
 int main(int iArgc, char *pArgv[])
 {
     FILE *pInfile = NULL;

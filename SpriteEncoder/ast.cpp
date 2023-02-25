@@ -26,6 +26,10 @@ SOFTWARE.
 #include "image.h"
 #include "output.h"
 
+#if __vita__
+#include "psp2_output.h"
+#endif
+
 enum Opacity
 {
     OP_TRANSPARENT = 0,

@@ -24,6 +24,10 @@
 
 /* end standard C headers. */
 
+#if __vita__
+#include "../Src/psp2_output.h"
+#endif
+
 /* flex integer type definitions */
 
 #ifndef FLEXINT_H

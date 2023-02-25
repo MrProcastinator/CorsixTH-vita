@@ -24,6 +24,10 @@ SOFTWARE.
 #include <cassert>
 #include "output.h"
 
+#if __vita__
+#include "../Src/psp2_output.h"
+#endif
+
 DataBlock::DataBlock()
 {
     m_iUsed = 0;

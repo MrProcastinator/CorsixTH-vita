@@ -39,6 +39,10 @@ SOFTWARE.
 #include "th_gfx.h"
 #include "th_map_overlays.h"
 
+#if __vita__
+#include "psp2_output.h"
+#endif
+
 constexpr int max_player_count = 4;
 constexpr int default_width = 128;
 constexpr int default_height = 128;

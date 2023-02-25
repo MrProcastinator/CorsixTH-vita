@@ -29,6 +29,10 @@ SOFTWARE.
 #include "lua_sdl.h"
 #include "th_lua.h"
 
+#if __vita__
+#include "psp2_output.h"
+#endif
+
 namespace {
 
 int l_init(lua_State* L) {

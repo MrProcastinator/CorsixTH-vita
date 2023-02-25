@@ -69,6 +69,10 @@
 #include "ast.h"
 #include <cstdio>
 
+#if __vita__
+#include "../Src/psp2_output.h"
+#endif
+
 std::set<Sprite> g_oSprites;
 
 /* Line 358 of yacc.c  */

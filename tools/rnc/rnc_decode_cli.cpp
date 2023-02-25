@@ -24,6 +24,10 @@ SOFTWARE.
 #include <cstdlib>
 #include <cstring>
 
+#if __vita__
+#include "../Src/psp2_output.h"
+#endif
+
 #include "rnc.h"
 
 static std::uint8_t* decompress(const std::uint8_t* in, std::size_t inlen,
