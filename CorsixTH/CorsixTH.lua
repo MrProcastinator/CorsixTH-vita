@@ -9,6 +9,17 @@ if (package and package.preload and package.preload.TH) == nil then
   error "This file must be invoked by the CorsixTH executable"
 end
 
+-- When running in PSVita we load a library called psp2
+-- Up to now it includes:
+-- A replacement for print to redirect to stdout.txt
+if (package and package.preload and package.preload.psp2) ~= nil then
+  psp2 = require('psp2')
+  if (psp2 and psp2.print) == nil then
+    _error = psp.print_doesnt_exist
+  end
+  _G['print'] = psp2.print
+end
+
 -- Set a large enough cstacklimit to load complex saves in stack based
 -- versions of lua, such as 5.4.[01]
 if debug.setcstacklimit then -- luacheck: ignore 143 luacheck is missing 5.4 debug functions

@@ -9,7 +9,7 @@ extern "C" {
 
 int luaopen_lfs(lua_State *L);
 int luaopen_lpeg(lua_State *L);
-int luaopen_psp2print(lua_State *L);
+int luaopen_psp2(lua_State *L);
 
 #ifdef __cplusplus
 }

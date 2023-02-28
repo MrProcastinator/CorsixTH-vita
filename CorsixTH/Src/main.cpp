@@ -171,7 +171,7 @@ int lua_main_no_eval(lua_State* L) {
   // Must preload other dependencies in case of PSVita
   preload_lua_package(L, "lfs", luaopen_lfs);
   preload_lua_package(L, "lpeg", luaopen_lpeg);
-  preload_lua_package(L, "*", luaopen_psp2print);
+  preload_lua_package(L, "psp2", luaopen_psp2);
 #endif
 
   // require "debug" (Harmless in Lua 5.1, useful in 5.2 for compatibility)

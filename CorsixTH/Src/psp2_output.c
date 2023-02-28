@@ -24,43 +24,43 @@ void load_output_files(FILE** out, FILE** err)
     }
 }
 
-static int lj_cf_print_psp2(lua_State *L)
+static int lj_cf_print_psp2_generic(lua_State *L, FILE* vita_file)
 {
   int i, type, size = 0, nargs = lua_gettop(L);
   const char* str = NULL;
   for (i = 0; i < nargs; i++) {
     if (i)
-        fputc(' ', vita_stdout);
+        fputc(' ', vita_file);
     type = lua_type(L, i);
     switch(type)
     {
-        case LUA_TSTRING:  /* booleans */
+        case LUA_TSTRING:  /* strings */
           str = lua_tostring(L, i);
           size = strlen(str);
-          fwrite(str, 1, size, vita_stdout);
+          fwrite(str, 1, size, vita_file);
         case LUA_TBOOLEAN:  /* booleans */
-          fprintf(vita_stdout, lua_toboolean(L, i) ? "true" : "false");
+          fprintf(vita_file, lua_toboolean(L, i) ? "true" : "false");
           break;
         case LUA_TNUMBER:  /* numbers */
-          fprintf(vita_stdout, "%g", lua_tonumber(L, i));
+          fprintf(vita_file, "%g", lua_tonumber(L, i));
           break;
         default:  /* other values */
-          fprintf(vita_stdout, "%s", lua_typename(L, type));
+          fprintf(vita_file, "%s", lua_typename(L, type));
           break;
     }
   }
-  fputc('\n', vita_stdout);
+  fputc('\n', vita_file);
   return 0;
 }
 
-static const struct luaL_Reg printlib [] = {
-  {"print", lj_cf_print_psp2},
-  {NULL, NULL} /* end of array */
-};
-
-int luaopen_psp2print(lua_State *L)
+/* Print replacement using stdout.txt */
+int lj_cf_print_psp2(lua_State *L)
 {
-  lua_getglobal(L, "_G");
-  luaL_register(L, NULL, printlib);
-  lua_pop(L, 1);
+    return lj_cf_print_psp2_generic(L, vita_stdout);
+}
+
+/* Error replacement using stderr.txt */
+int lj_cf_error_psp2(lua_State *L)
+{
+    return lj_cf_print_psp2_generic(L, vita_stderr);
 }

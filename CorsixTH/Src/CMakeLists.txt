@@ -66,6 +66,7 @@ if(VITA)
     target_sources(CorsixTH_lib
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/psp2_output.c 
+        ${CMAKE_CURRENT_SOURCE_DIR}/psp2_lua_libs.c 
     )
 endif()
 
